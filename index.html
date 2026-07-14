@@ -1,101 +1,451 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Отправить JSON на сервер</title>
+<meta charset="UTF-8">
+<title>Морская Битва: Три в ряд</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #0a3d62 0%, #1e6091 50%, #3c97bf 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: white;
+    overflow-x: hidden;
+  }
+  h1 {
+    font-size: 2.2em;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+  }
+  .stats {
+    display: flex;
+    gap: 30px;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .stats span { font-weight: bold; color: #ffd700; }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 4px;
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,100,200,0.6);
+    border: 3px solid rgba(255,255,255,0.3);
+  }
+  .cell {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    position: relative;
+  }
+  .cell:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+  .cell.selected {
+    background: rgba(255,215,0,0.5);
+    box-shadow: 0 0 15px gold;
+    transform: scale(1.1);
+  }
+  .cell.special { animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .cell.bomb { background: radial-gradient(circle, #ff4500, #8b0000); box-shadow: 0 0 10px red; }
+  .cell.rocket { background: radial-gradient(circle, #00ff88, #006400); box-shadow: 0 0 10px #00ff88; }
+  .cell.pyramid { background: radial-gradient(circle, #ffd700, #8b6914); box-shadow: 0 0 15px gold; }
+  .cell.exploding { animation: explode 0.4s forwards; }
+  @keyframes explode {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  .legend {
+    margin-top: 20px;
+    background: rgba(0,0,0,0.3);
+    padding: 15px 25px;
+    border-radius: 15px;
+    max-width: 600px;
+    font-size: 0.95em;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .legend h3 { margin-bottom: 10px; color: #ffd700; }
+  .legend p { margin: 5px 0; line-height: 1.5; }
+  button {
+    margin-top: 15px;
+    padding: 10px 25px;
+    font-size: 1.1em;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  button:hover { transform: scale(1.05); }
+  #message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.85);
+    padding: 30px 50px;
+    border-radius: 20px;
+    font-size: 1.5em;
+    border: 3px solid gold;
+    display: none;
+    z-index: 100;
+    text-align: center;
+  }
+</style>
 </head>
 <body>
-<h1>Отправить конфигурацию уровня</h1>
-<button id="sendBtn">Отправить JSON</button>
+  <h1>🌊 Морская Битва: Три в ряд 🌊</h1>
+  <div class="stats">
+    <div>Очки: <span id="score">0</span></div>
+    <div>Ходы: <span id="moves">30</span></div>
+    <div>Цель: <span id="goal">500</span></div>
+  </div>
+  <div id="board"></div>
+  <button onclick="initGame()">🔄 Новая игра</button>
+  <div class="legend">
+    <h3>🏴‍☠️ Правила</h3>
+    <p>🎯 Меняй соседние предметы местами, чтобы собрать 3+ в ряд.</p>
+    <p>💣 <b>Бомба</b> — собирается в форме L или T (3+3 крест-накрест). Взрывает 3×3 вокруг себя!</p>
+    <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд или колонку.</p>
+    <p>🔺 <b>Пирамида</b> — 5 в ряд. Уничтожает ВСЕ предметы такого же типа на поле!</p>
+    <p>⭐ Обычные совпадения 3 — дают очки. Цель: набрать 500 очков за 30 ходов!</p>
+  </div>
+  <div id="message"></div>
 
 <script>
-const jsonData = {
-  "type": "infinite",
-  "theme": "ocean",
-  "design": {
-    "backgroundImage": "https://i.pinimg.com/originals/6d/06/1e/6d061e7b075971d80db515bc3f1a4805.jpg",
-    "candies": [
-      {
-        "name": "Sea Shell",
-        "icon": "https://avatars.mds.yandex.net/i?id=e8d9492857681f946c1ebed5752e4bca_l-10024862-images-thumbs&n=33&w=720&h=720"
-      },
-      {
-        "name": "Pearl",
-        "icon": "https://img.freepik.com/premium-psd/white-pearl-isolated-on-white-background_1264610-9012.jpg?size=626&ext=jpg"
-      },
-      {
-        "name": "Treasure Chest",
-        "icon": "https://avatars.mds.yandex.net/i?id=25766f42ccdcb969487531b8da0e8a04_l-5482194-images-thumbs&n=13"
-      }
-    ],
-    "colors": ["#00BFFF", "#40E0D0", "#FF7F50"]
-  },
-  "gridSize": 8,
-  "matchLength": 3,
-  "specialItems": [
-    {
-      "name": "Treasure Chest",
-      "effect": "clearRow",
-      "icon": "https://avatars.mds.yandex.net/i?id=25766f42ccdcb969487531b8da0e8a04_l-5482194-images-thumbs&n=13"
-    },
-    {
-      "name": "Sea Star",
-      "effect": "clearColumn",
-      "icon": "https://avatars.mds.yandex.net/i?id=e8d9492857681f946c1ebed5752e4bca_l-10024862-images-thumbs&n=33&w=720&h=720"
-    }
-  ],
-  "store": {
-    "categories": [
-      {
-        "name": "Sea Goods",
-        "items": [
-          {
-            "id": "item_001",
-            "name": "Golden Anchor",
-            "cost": 100,
-            "icon": "https://avatars.mds.yandex.net/i?id=25766f42ccdcb969487531b8da0e8a04_l-5482194-images-thumbs&n=13",
-            "effect": "boostScore"
-          },
-          {
-            "id": "item_002",
-            "name": "Pearl Necklace",
-            "cost": 150,
-            "icon": "https://img.freepik.com/premium-psd/white-pearl-isolated-on-white-background_1264610-9012.jpg?size=626&ext=jpg",
-            "effect": "extraMove"
-          }
-        ]
-      }
-    ],
-    "currency": "coins"
-  },
-  "levels": {
-    "type": "infinite",
-    "difficultyIncreasePerLevel": 0.1,
-    "initialDifficulty": 1
-  },
-  "score": 0,
-  "level": 1
-};
+const ITEMS = ['🐟','🐙','🦀','🐢','🐬','🦈','🐚','⭐','🦞','🐳','🧜','⚓'];
+const SIZE = 8;
+let board = [];
+let selected = null;
+let score = 0;
+let moves = 30;
+let busy = false;
 
-document.getElementById('sendBtn').addEventListener('click', () => {
-  fetch('https://yourapi.com/api/load-levels', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(jsonData)
-  })
-  .then(response => response.json())
-  .then(data => {
-    alert('Данные успешно отправлены!');
-    console.log(data);
-  })
-  .catch(error => {
-    alert('Ошибка при отправке данных');
-    console.error('Error:', error);
+const boardEl = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const movesEl = document.getElementById('moves');
+const messageEl = document.getElementById('message');
+
+function rand(n) { return Math.floor(Math.random() * n); }
+
+function initGame() {
+  score = 0; moves = 30;
+  updateStats();
+  messageEl.style.display = 'none';
+  do {
+    board = [];
+    for (let r = 0; r < SIZE; r++) {
+      const row = [];
+      for (let c = 0; c < SIZE; c++) {
+        let item;
+        do {
+          item = { type: ITEMS[rand(ITEMS.length)], special: null };
+        } while (
+          (c >= 2 && row[c-1].type === item.type && row[c-2].type === item.type) ||
+          (r >= 2 && board[r-1][c].type === item.type && board[r-2][c].type === item.type)
+        );
+        row.push(item);
+      }
+      board.push(row);
+    }
+  } while (findMatches().length > 0);
+  render();
+}
+
+function updateStats() {
+  scoreEl.textContent = score;
+  movesEl.textContent = moves;
+}
+
+function render() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const item = board[r][c];
+      if (item) {
+        cell.textContent = item.type;
+        if (item.special === 'bomb') cell.classList.add('bomb','special');
+        else if (item.special === 'rocket') cell.classList.add('rocket','special');
+        else if (item.special === 'pyramid') cell.classList.add('pyramid','special');
+      }
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.onclick = () => onCellClick(r, c);
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+function onCellClick(r, c) {
+  if (busy) return;
+  if (!selected) {
+    selected = { r, c };
+    render();
+    const idx = r * SIZE + c;
+    boardEl.children[idx].classList.add('selected');
+  } else {
+    const dr = Math.abs(selected.r - r);
+    const dc = Math.abs(selected.c - c);
+    if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+      trySwap(selected.r, selected.c, r, c);
+    } else {
+      selected = { r, c };
+      render();
+      const idx = r * SIZE + c;
+      boardEl.children[idx].classList.add('selected');
+    }
+  }
+}
+
+async function trySwap(r1, c1, r2, c2) {
+  busy = true;
+  selected = null;
+  [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+  render();
+  await sleep(150);
+  
+  const matches = findMatches();
+  const special1 = board[r1][c1]?.special || board[r2][c2]?.special;
+  const isSpecialHit = (board[r1][c1]?.special || board[r2][c2]?.special) && 
+                       matches.some(m => m.cells.some(([r,c]) => (r===r1&&c===c1)||(r===r2&&c===c2)));
+  
+  if (matches.length === 0 && !isSpecialHit) {
+    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    render();
+    busy = false;
+    return;
+  }
+  
+  moves--;
+  updateStats();
+  
+  // Handle special item activation
+  if (isSpecialHit) {
+    const sR = board[r1][c1]?.special ? r1 : r2;
+    const sC = board[r1][c1]?.special ? c1 : c2;
+    await activateSpecial(sR, sC);
+  }
+  
+  await processMatches();
+  
+  if (score >= 500) showMessage('🏆 Победа! Ты настоящий морской волк! 🏆');
+  else if (moves <= 0) showMessage('💀 Ходы кончились! Попробуй ещё раз 💀');
+  
+  busy = false;
+}
+
+async function activateSpecial(r, c) {
+  const item = board[r][c];
+  if (!item || !item.special) return;
+  const type = item.special;
+  const itemType = item.type;
+  const toClear = new Set();
+  
+  if (type === 'bomb') {
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r+dr, nc = c+dc;
+        if (nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE) toClear.add(nr*SIZE+nc);
+      }
+    score += 50;
+  } else if (type === 'rocket') {
+    // Определяем направление из последнего совпадения
+    for (let i = 0; i < SIZE; i++) {
+      toClear.add(r*SIZE+i);
+      toClear.add(i*SIZE+c);
+    }
+    score += 80;
+  } else if (type === 'pyramid') {
+    for (let rr = 0; rr < SIZE; rr++)
+      for (let cc = 0; cc < SIZE; cc++)
+        if (board[rr][cc] && board[rr][cc].type === itemType)
+          toClear.add(rr*SIZE+cc);
+    score += 150;
+  }
+  
+  await animateClear(toClear);
+  toClear.forEach(idx => {
+    const rr = Math.floor(idx/SIZE), cc = idx%SIZE;
+    board[rr][cc] = null;
   });
-});
+  render();
+  await sleep(200);
+  await dropAndFill();
+}
+
+function findMatches() {
+  const matches = [];
+  const visited = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+  
+  // Горизонтальные
+  for (let r = 0; r < SIZE; r++) {
+    let c = 0;
+    while (c < SIZE) {
+      const type = board[r][c]?.type;
+      if (!type || board[r][c].special) { c++; continue; }
+      let len = 1;
+      while (c+len < SIZE && board[r][c+len]?.type === type && !board[r][c+len].special) len++;
+      if (len >= 3) {
+        const cells = [];
+        for (let i = 0; i < len; i++) cells.push([r, c+i]);
+        matches.push({ cells, dir: 'h', len });
+      }
+      c += len;
+    }
+  }
+  // Вертикальные
+  for (let c = 0; c < SIZE; c++) {
+    let r = 0;
+    while (r < SIZE) {
+      const type = board[r][c]?.type;
+      if (!type || board[r][c].special) { r++; continue; }
+      let len = 1;
+      while (r+len < SIZE && board[r+len][c]?.type === type && !board[r+len][c].special) len++;
+      if (len >= 3) {
+        const cells = [];
+        for (let i = 0; i < len; i++) cells.push([r+i, c]);
+        matches.push({ cells, dir: 'v', len });
+      }
+      r += len;
+    }
+  }
+  return matches;
+}
+
+function detectSpecials(matches) {
+  // Ищем пересечения (L/T формы) -> бомба
+  const cellMatchCount = {};
+  matches.forEach((m, idx) => {
+    m.cells.forEach(([r,c]) => {
+      const key = r+','+c;
+      if (!cellMatchCount[key]) cellMatchCount[key] = [];
+      cellMatchCount[key].push(idx);
+    });
+  });
+  
+  const specials = []; // {r, c, type, itemType}
+  const usedMatches = new Set();
+  
+  // L/T формы = бомба
+  for (const key in cellMatchCount) {
+    if (cellMatchCount[key].length >= 2) {
+      const [r, c] = key.split(',').map(Number);
+      const m1 = matches[cellMatchCount[key][0]];
+      specials.push({ r, c, type: 'bomb', itemType: board[r][c].type });
+      cellMatchCount[key].forEach(i => usedMatches.add(i));
+    }
+  }
+  
+  // Длинные линии
+  matches.forEach((m, idx) => {
+    if (usedMatches.has(idx)) return;
+    if (m.len >= 5) {
+      const mid = m.cells[Math.floor(m.len/2)];
+      specials.push({ r: mid[0], c: mid[1], type: 'pyramid', itemType: board[mid[0]][mid[1]].type });
+    } else if (m.len === 4) {
+      const mid = m.cells[1];
+      specials.push({ r: mid[0], c: mid[1], type: 'rocket', itemType: board[mid[0]][mid[1]].type });
+    }
+  });
+  
+  return specials;
+}
+
+async function processMatches() {
+  let chain = 0;
+  while (true) {
+    const matches = findMatches();
+    if (matches.length === 0) break;
+    
+    const specials = detectSpecials(matches);
+    const toClear = new Set();
+    matches.forEach(m => m.cells.forEach(([r,c]) => toClear.add(r*SIZE+c)));
+    
+    // Не удаляем клетки, где создаются особые предметы
+    const specialPositions = new Set(specials.map(s => s.r*SIZE+s.c));
+    
+    score += toClear.size * 10 * (chain + 1);
+    updateStats();
+    
+    await animateClear(toClear);
+    toClear.forEach(idx => {
+      if (!specialPositions.has(idx)) {
+        const r = Math.floor(idx/SIZE), c = idx%SIZE;
+        board[r][c] = null;
+      }
+    });
+    
+    // Создаём особые предметы
+    specials.forEach(s => {
+      board[s.r][s.c] = { type: s.itemType, special: s.type };
+    });
+    
+    render();
+    await sleep(250);
+    await dropAndFill();
+    chain++;
+  }
+}
+
+async function animateClear(set) {
+  const cells = boardEl.children;
+  set.forEach(idx => {
+    if (cells[idx]) cells[idx].classList.add('exploding');
+  });
+  await sleep(350);
+}
+
+async function dropAndFill() {
+  for (let c = 0; c < SIZE; c++) {
+    let writeRow = SIZE - 1;
+    for (let r = SIZE - 1; r >= 0; r--) {
+      if (board[r][c]) {
+        if (r !== writeRow) {
+          board[writeRow][c] = board[r][c];
+          board[r][c] = null;
+        }
+        writeRow--;
+      }
+    }
+    for (let r = writeRow; r >= 0; r--) {
+      board[r][c] = { type: ITEMS[rand(ITEMS.length)], special: null };
+    }
+  }
+  render();
+  await sleep(300);
+}
+
+function showMessage(text) {
+  messageEl.textContent = text;
+  messageEl.style.display = 'block';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+initGame();
 </script>
 </body>
 </html>
