@@ -6,7 +6,7 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
   body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     background: linear-gradient(180deg, #0a3d62 0%, #1e6091 50%, #3c97bf 100%);
     min-height: 100vh;
     display: flex;
@@ -44,30 +44,69 @@
     border: 3px solid rgba(255,255,255,0.3);
   }
   .cell {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
     cursor: pointer;
     transition: transform 0.2s, background 0.2s;
     position: relative;
   }
-  .cell:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+  .cell:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
   .cell.selected {
-    background: rgba(255,215,0,0.5);
+    background: rgba(255,215,0,0.4);
     box-shadow: 0 0 15px gold;
     transform: scale(1.1);
   }
-  .cell.special { animation: pulse 1s infinite; }
+  /* Цветной кружок-фон для каждой фишки */
+  .piece {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.4);
+    transition: transform 0.2s;
+  }
+  /* Индивидуальные цвета для каждого типа */
+  .piece-0  { background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00); } /* 🐟 оранжевый */
+  .piece-1  { background: radial-gradient(circle at 30% 30%, #c77dff, #7b2cbf); } /* 🐙 фиолетовый */
+  .piece-2  { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); } /* 🦀 красный */
+  .piece-3  { background: radial-gradient(circle at 30% 30%, #8ce99a, #2b8a3e); } /* 🐢 зелёный */
+  .piece-4  { background: radial-gradient(circle at 30% 30%, #ffd43b, #f59f00); } /* 🐠 жёлтый */
+  .piece-5  { background: radial-gradient(circle at 30% 30%, #ffa8a8, #e03131); } /* 🐡 розовый */
+  .piece-6  { background: radial-gradient(circle at 30% 30%, #ffd8a8, #d9480f); } /* 🐚 персиковый */
+  .piece-7  { background: radial-gradient(circle at 30% 30%, #fff3bf, #f08c00); } /* ⭐ золотой */
+  .piece-8  { background: radial-gradient(circle at 30% 30%, #74c0fc, #1864ab); } /* 🐳 голубой */
+  .piece-9  { background: radial-gradient(circle at 30% 30%, #e599f7, #9c36b5); } /* 🦑 сиреневый */
+  .piece-10 { background: radial-gradient(circle at 30% 30%, #99e9f2, #1098ad); } /* 💎 бирюзовый */
+  .piece-11 { background: radial-gradient(circle at 30% 30%, #adb5bd, #495057); } /* ⚓ серый */
+
+  /* Особые предметы */
+  .cell.special .piece { animation: pulse 1s infinite; }
   @keyframes pulse {
     0%,100% { transform: scale(1); }
     50% { transform: scale(1.15); }
   }
-  .cell.bomb { background: radial-gradient(circle, #ff4500, #8b0000); box-shadow: 0 0 10px red; }
-  .cell.rocket { background: radial-gradient(circle, #00ff88, #006400); box-shadow: 0 0 10px #00ff88; }
-  .cell.pyramid { background: radial-gradient(circle, #ffd700, #8b6914); box-shadow: 0 0 15px gold; }
+  .cell.bomb .piece {
+    background: radial-gradient(circle at 30% 30%, #ff6347, #8b0000) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #ff4500, 0 0 25px #ff0000;
+    border-color: #ffd700;
+  }
+  .cell.rocket .piece {
+    background: radial-gradient(circle at 30% 30%, #69db7c, #099268) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #00ff88, 0 0 25px #00ff88;
+    border-color: #ffd700;
+  }
+  .cell.pyramid .piece {
+    background: radial-gradient(circle at 30% 30%, #ffe066, #e67700) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 20px gold, 0 0 35px gold;
+    border-color: #fff;
+  }
   .cell.exploding { animation: explode 0.4s forwards; }
   @keyframes explode {
     0% { transform: scale(1); opacity: 1; }
@@ -127,14 +166,15 @@
     <h3>🏴‍☠️ Правила</h3>
     <p>🎯 Меняй соседние предметы местами, чтобы собрать 3+ в ряд.</p>
     <p>💣 <b>Бомба</b> — собирается в форме L или T (3+3 крест-накрест). Взрывает 3×3 вокруг себя!</p>
-    <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд или колонку.</p>
+    <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд и колонку крестом.</p>
     <p>🔺 <b>Пирамида</b> — 5 в ряд. Уничтожает ВСЕ предметы такого же типа на поле!</p>
     <p>⭐ Обычные совпадения 3 — дают очки. Цель: набрать 500 очков за 30 ходов!</p>
   </div>
   <div id="message"></div>
 
 <script>
-const ITEMS = ['🐟','🐙','🦀','🐢','🐬','🦈','🐚','⭐','🦞','🐳','🧜','⚓'];
+// Заменил проблемные эмодзи на более универсальные
+const ITEMS = ['🐟','🐙','🦀','🐢','🐠','🐡','🐚','⭐','🐳','🦑','💎','⚓'];
 const SIZE = 8;
 let board = [];
 let selected = null;
@@ -186,7 +226,12 @@ function render() {
       cell.className = 'cell';
       const item = board[r][c];
       if (item) {
-        cell.textContent = item.type;
+        const piece = document.createElement('div');
+        piece.className = 'piece';
+        piece.classList.add('piece-' + ITEMS.indexOf(item.type));
+        piece.textContent = item.type;
+        cell.appendChild(piece);
+        
         if (item.special === 'bomb') cell.classList.add('bomb','special');
         else if (item.special === 'rocket') cell.classList.add('rocket','special');
         else if (item.special === 'pyramid') cell.classList.add('pyramid','special');
@@ -242,7 +287,6 @@ async function trySwap(r1, c1, r2, c2) {
   moves--;
   updateStats();
   
-  // Handle special item activation
   if (isSpecialHit) {
     const sR = board[r1][c1]?.special ? r1 : r2;
     const sC = board[r1][c1]?.special ? c1 : c2;
@@ -272,7 +316,6 @@ async function activateSpecial(r, c) {
       }
     score += 50;
   } else if (type === 'rocket') {
-    // Определяем направление из последнего совпадения
     for (let i = 0; i < SIZE; i++) {
       toClear.add(r*SIZE+i);
       toClear.add(i*SIZE+c);
@@ -298,9 +341,6 @@ async function activateSpecial(r, c) {
 
 function findMatches() {
   const matches = [];
-  const visited = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
-  
-  // Горизонтальные
   for (let r = 0; r < SIZE; r++) {
     let c = 0;
     while (c < SIZE) {
@@ -316,7 +356,6 @@ function findMatches() {
       c += len;
     }
   }
-  // Вертикальные
   for (let c = 0; c < SIZE; c++) {
     let r = 0;
     while (r < SIZE) {
@@ -336,7 +375,6 @@ function findMatches() {
 }
 
 function detectSpecials(matches) {
-  // Ищем пересечения (L/T формы) -> бомба
   const cellMatchCount = {};
   matches.forEach((m, idx) => {
     m.cells.forEach(([r,c]) => {
@@ -346,20 +384,17 @@ function detectSpecials(matches) {
     });
   });
   
-  const specials = []; // {r, c, type, itemType}
+  const specials = [];
   const usedMatches = new Set();
   
-  // L/T формы = бомба
   for (const key in cellMatchCount) {
     if (cellMatchCount[key].length >= 2) {
       const [r, c] = key.split(',').map(Number);
-      const m1 = matches[cellMatchCount[key][0]];
       specials.push({ r, c, type: 'bomb', itemType: board[r][c].type });
       cellMatchCount[key].forEach(i => usedMatches.add(i));
     }
   }
   
-  // Длинные линии
   matches.forEach((m, idx) => {
     if (usedMatches.has(idx)) return;
     if (m.len >= 5) {
@@ -384,7 +419,6 @@ async function processMatches() {
     const toClear = new Set();
     matches.forEach(m => m.cells.forEach(([r,c]) => toClear.add(r*SIZE+c)));
     
-    // Не удаляем клетки, где создаются особые предметы
     const specialPositions = new Set(specials.map(s => s.r*SIZE+s.c));
     
     score += toClear.size * 10 * (chain + 1);
@@ -398,7 +432,6 @@ async function processMatches() {
       }
     });
     
-    // Создаём особые предметы
     specials.forEach(s => {
       board[s.r][s.c] = { type: s.itemType, special: s.type };
     });
