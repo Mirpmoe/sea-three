@@ -1,4 +1,16 @@
-{
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Отправить JSON на сервер</title>
+</head>
+<body>
+<h1>Отправить конфигурацию уровня</h1>
+<button id="sendBtn">Отправить JSON</button>
+
+<script>
+const jsonData = {
   "type": "infinite",
   "theme": "ocean",
   "design": {
@@ -59,9 +71,31 @@
   },
   "levels": {
     "type": "infinite",
-    "difficultyIncreasePerLevel": 0.1,  // Можно увеличить сложность постепенно
+    "difficultyIncreasePerLevel": 0.1,
     "initialDifficulty": 1
   },
   "score": 0,
   "level": 1
-}
+};
+
+document.getElementById('sendBtn').addEventListener('click', () => {
+  fetch('https://yourapi.com/api/load-levels', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(jsonData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert('Данные успешно отправлены!');
+    console.log(data);
+  })
+  .catch(error => {
+    alert('Ошибка при отправке данных');
+    console.error('Error:', error);
+  });
+});
+</script>
+</body>
+</html>
