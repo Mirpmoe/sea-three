@@ -59,7 +59,6 @@
     box-shadow: 0 0 15px gold;
     transform: scale(1.1);
   }
-  /* Цветной кружок-фон для каждой фишки */
   .piece {
     width: 52px;
     height: 52px;
@@ -72,21 +71,19 @@
     border: 2px solid rgba(255,255,255,0.4);
     transition: transform 0.2s;
   }
-  /* Индивидуальные цвета для каждого типа */
-  .piece-0  { background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00); } /* 🐟 оранжевый */
-  .piece-1  { background: radial-gradient(circle at 30% 30%, #c77dff, #7b2cbf); } /* 🐙 фиолетовый */
-  .piece-2  { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); } /* 🦀 красный */
-  .piece-3  { background: radial-gradient(circle at 30% 30%, #8ce99a, #2b8a3e); } /* 🐢 зелёный */
-  .piece-4  { background: radial-gradient(circle at 30% 30%, #ffd43b, #f59f00); } /* 🐠 жёлтый */
-  .piece-5  { background: radial-gradient(circle at 30% 30%, #ffa8a8, #e03131); } /* 🐡 розовый */
-  .piece-6  { background: radial-gradient(circle at 30% 30%, #ffd8a8, #d9480f); } /* 🐚 персиковый */
-  .piece-7  { background: radial-gradient(circle at 30% 30%, #fff3bf, #f08c00); } /* ⭐ золотой */
-  .piece-8  { background: radial-gradient(circle at 30% 30%, #74c0fc, #1864ab); } /* 🐳 голубой */
-  .piece-9  { background: radial-gradient(circle at 30% 30%, #e599f7, #9c36b5); } /* 🦑 сиреневый */
-  .piece-10 { background: radial-gradient(circle at 30% 30%, #99e9f2, #1098ad); } /* 💎 бирюзовый */
-  .piece-11 { background: radial-gradient(circle at 30% 30%, #adb5bd, #495057); } /* ⚓ серый */
+  .piece-0  { background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00); }
+  .piece-1  { background: radial-gradient(circle at 30% 30%, #c77dff, #7b2cbf); }
+  .piece-2  { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); }
+  .piece-3  { background: radial-gradient(circle at 30% 30%, #8ce99a, #2b8a3e); }
+  .piece-4  { background: radial-gradient(circle at 30% 30%, #ffd43b, #f59f00); }
+  .piece-5  { background: radial-gradient(circle at 30% 30%, #ffa8a8, #e03131); }
+  .piece-6  { background: radial-gradient(circle at 30% 30%, #ffd8a8, #d9480f); }
+  .piece-7  { background: radial-gradient(circle at 30% 30%, #fff3bf, #f08c00); }
+  .piece-8  { background: radial-gradient(circle at 30% 30%, #74c0fc, #1864ab); }
+  .piece-9  { background: radial-gradient(circle at 30% 30%, #e599f7, #9c36b5); }
+  .piece-10 { background: radial-gradient(circle at 30% 30%, #99e9f2, #1098ad); }
+  .piece-11 { background: radial-gradient(circle at 30% 30%, #adb5bd, #495057); }
 
-  /* Особые предметы */
   .cell.special .piece { animation: pulse 1s infinite; }
   @keyframes pulse {
     0%,100% { transform: scale(1); }
@@ -173,7 +170,6 @@
   <div id="message"></div>
 
 <script>
-// Заменил проблемные эмодзи на более универсальные
 const ITEMS = ['🐟','🐙','🦀','🐢','🐠','🐡','🐚','⭐','🐳','🦑','💎','⚓'];
 const SIZE = 8;
 let board = [];
@@ -188,6 +184,79 @@ const movesEl = document.getElementById('moves');
 const messageEl = document.getElementById('message');
 
 function rand(n) { return Math.floor(Math.random() * n); }
+
+function hasPossibleMoves() {
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (c + 1 < SIZE && checkSwap(r, c, r, c + 1)) return true;
+      if (r + 1 < SIZE && checkSwap(r, c, r + 1, c)) return true;
+    }
+  }
+  return false;
+}
+
+function checkSwap(r1, c1, r2, c2) {
+  if (!board[r1][c1] || !board[r2][c2]) return false;
+  
+  const temp = board[r1][c1];
+  board[r1][c1] = board[r2][c2];
+  board[r2][c2] = temp;
+  
+  const s1 = board[r1][c1].special;
+  const s2 = board[r2][c2].special;
+  board[r1][c1].special = null;
+  board[r2][c2].special = null;
+  
+  const hasMatch = findMatches().length > 0;
+  
+  board[r1][c1].special = s1;
+  board[r2][c2].special = s2;
+  
+  board[r2][c2] = board[r1][c1];
+  board[r1][c1] = temp;
+  
+  return hasMatch;
+}
+
+async function shuffleBoard() {
+  showMessage('🔄 Нет доступных ходов! Перемешиваем поле... 🔄');
+  await sleep(1500);
+  messageEl.style.display = 'none';
+  
+  let items = [];
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      items.push(board[r][c]);
+    }
+  }
+  
+  let attempts = 0;
+  let maxAttempts = 100;
+  do {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    
+    let idx = 0;
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        board[r][c] = items[idx++];
+      }
+    }
+    attempts++;
+  } while ((findMatches().length > 0 || !hasPossibleMoves()) && attempts < maxAttempts);
+  
+  if (attempts >= maxAttempts) {
+    initGame();
+    return;
+  }
+  
+  render();
+  showMessage('🔄 Поле перемешано! 🔄');
+  await sleep(1000);
+  messageEl.style.display = 'none';
+}
 
 function initGame() {
   score = 0; moves = 30;
@@ -209,7 +278,7 @@ function initGame() {
       }
       board.push(row);
     }
-  } while (findMatches().length > 0);
+  } while (findMatches().length > 0 || !hasPossibleMoves());
   render();
 }
 
@@ -273,7 +342,6 @@ async function trySwap(r1, c1, r2, c2) {
   await sleep(150);
   
   const matches = findMatches();
-  const special1 = board[r1][c1]?.special || board[r2][c2]?.special;
   const isSpecialHit = (board[r1][c1]?.special || board[r2][c2]?.special) && 
                        matches.some(m => m.cells.some(([r,c]) => (r===r1&&c===c1)||(r===r2&&c===c2)));
   
@@ -295,8 +363,13 @@ async function trySwap(r1, c1, r2, c2) {
   
   await processMatches();
   
-  if (score >= 500) showMessage('🏆 Победа! Ты настоящий морской волк! 🏆');
-  else if (moves <= 0) showMessage('💀 Ходы кончились! Попробуй ещё раз 💀');
+  if (score >= 500) {
+    showMessage('🏆 Победа! Ты настоящий морской волк! 🏆');
+  } else if (moves <= 0) {
+    showMessage('💀 Ходы кончились! Попробуй ещё раз 💀');
+  } else if (!hasPossibleMoves()) {
+    await shuffleBoard();
+  }
   
   busy = false;
 }
