@@ -1,0 +1,55 @@
+POST /api/minigame/sea-match-3 HTTP/1.1
+Host: yourgameapi.com
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+{
+  "type": "infinite",
+  "theme": "ocean",
+  "design": {
+    "background": "deep_sea",
+    "candies": "sea_creatures",
+    "colors": ["blue", "turquoise", "coral"]
+  },
+  "gridSize": 8,
+  "matchLength": 3,
+  "specialItems": [
+    {
+      "name": "Treasure Chest",
+      "effect": "clearRow",
+      "icon": "chest.png"
+    },
+    {
+      "name": "Sea Star",
+      "effect": "clearColumn",
+      "icon": "starfish.png"
+    }
+  ],
+  "store": {
+    "categories": [
+      {
+        "name": "Sea Goods",
+        "items": [
+          {
+            "id": "item_001",
+            "name": "Golden Anchor",
+            "cost": 100,
+            "icon": "golden_anchor.png",
+            "effect": "boostScore"
+          },
+          {
+            "id": "item_002",
+            "name": "Pearl Necklace",
+            "cost": 150,
+            "icon": "pearl_necklace.png",
+            "effect": "extraMove"
+          }
+        ]
+      }
+    ],
+    "currency": "coins"
+  },
+  "infiniteMode": true,
+  "score": 0,
+  "level": 1
+}
