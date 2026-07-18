@@ -5,108 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Морская Битва: Три в ряд</title>
 <style>
-  * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
-  
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(180deg, #0a3d62 0%, #1e6091 50%, #3c97bf 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    color: white;
-    overflow-x: hidden;
-    position: relative;
-  }
-  
-  h1 {
-    font-size: clamp(1.5em, 4vw, 2.2em);
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  
-  .stats {
-    display: flex;
-    gap: 20px;
-    font-size: clamp(1em, 2.5vw, 1.3em);
-    margin-bottom: 15px;
-    background: rgba(0,0,0,0.3);
-    padding: 10px 25px;
-    border-radius: 15px;
-    border: 2px solid rgba(255,255,255,0.2);
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .stats div {
-    white-space: nowrap;
-  }
-  
-  .stats span { 
-    font-weight: bold; 
-    color: #ffd700; 
-  }
-  
-  #board {
-    display: grid;
-    grid-template-columns: repeat(8, minmax(40px, 60px));
-    grid-template-rows: repeat(8, minmax(40px, 60px));
-    gap: 4px;
-    background: rgba(0,0,0,0.4);
-    padding: 10px;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0,100,200,0.6);
-    border: 3px solid rgba(255,255,255,0.3);
-    max-width: 100%;
-    width: fit-content;
-  }
-  
-  .cell {
-    background: rgba(255,255,255,0.08);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
-    position: relative;
-    aspect-ratio: 1 / 1;
-  }
-  
-  .cell:hover { 
-    background: rgba(255,255,255,0.2); 
-    transform: scale(1.05); 
-  }
-  
-  .cell.selected {
-    background: rgba(255,215,0,0.4);
-    box-shadow: 0 0 15px gold;
-    transform: scale(1.1);
-  }
-  
-  .piece {
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(18px, 4vw, 30px);
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.4);
-    border: 2px solid rgba(255,255,255,0.4);
-    transition: transform 0.2s;
-  }
-  
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(180deg, #0a3d62 0%, #1e6091 50%, #3c97bf 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; color: white; overflow-x: hidden; position: relative; }
+  h1 { font-size: clamp(1.5em, 4vw, 2.2em); text-shadow: 2px 2px 8px rgba(0,0,0,0.5); margin-bottom: 10px; text-align: center; }
+  .stats { display: flex; gap: 15px; font-size: clamp(0.9em, 2.5vw, 1.2em); margin-bottom: 10px; background: rgba(0,0,0,0.4); padding: 12px 20px; border-radius: 15px; border: 2px solid rgba(255,255,255,0.2); flex-wrap: wrap; justify-content: center; max-width: 95vw; }
+  .stats div { white-space: nowrap; }
+  .stats span { font-weight: bold; color: #ffd700; }
+  .target-display { font-size: clamp(1.1em, 3vw, 1.4em); margin-bottom: 15px; background: rgba(255,215,0,0.15); padding: 8px 20px; border-radius: 25px; border: 2px solid #ffd700; color: #ffd700; font-weight: bold; }
+  #board { display: grid; grid-template-columns: repeat(8, minmax(40px, 60px)); grid-template-rows: repeat(8, minmax(40px, 60px)); gap: 4px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,100,200,0.6); border: 3px solid rgba(255,255,255,0.3); max-width: 100%; width: fit-content; transition: border-color 0.3s; }
+  #board.powerup-active { border-color: #ff4500; box-shadow: 0 0 30px rgba(255,69,0,0.6); cursor: crosshair; }
+  .cell { background: rgba(255,255,255,0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, background 0.2s; position: relative; aspect-ratio: 1 / 1; }
+  .cell:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+  .cell.selected { background: rgba(255,215,0,0.4); box-shadow: 0 0 15px gold; transform: scale(1.1); }
+  .piece { width: 80%; height: 80%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(18px, 4vw, 30px); box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.4); transition: transform 0.2s; }
   .piece-0  { background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00); }
   .piece-1  { background: radial-gradient(circle at 30% 30%, #c77dff, #7b2cbf); }
   .piece-2  { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); }
@@ -119,125 +30,100 @@
   .piece-9  { background: radial-gradient(circle at 30% 30%, #e599f7, #9c36b5); }
   .piece-10 { background: radial-gradient(circle at 30% 30%, #99e9f2, #1098ad); }
   .piece-11 { background: radial-gradient(circle at 30% 30%, #adb5bd, #495057); }
-
   .cell.special .piece { animation: pulse 1s infinite; }
-  @keyframes pulse {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-  }
-  
-  .cell.bomb .piece {
-    background: radial-gradient(circle at 30% 30%, #ff6347, #8b0000) !important;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #ff4500, 0 0 25px #ff0000;
-    border-color: #ffd700;
-  }
-  
-  .cell.rocket .piece {
-    background: radial-gradient(circle at 30% 30%, #69db7c, #099268) !important;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #00ff88, 0 0 25px #00ff88;
-    border-color: #ffd700;
-  }
-  
-  .cell.pyramid .piece {
-    background: radial-gradient(circle at 30% 30%, #ffe066, #e67700) !important;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 20px gold, 0 0 35px gold;
-    border-color: #fff;
-  }
-  
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+  .cell.bomb .piece { background: radial-gradient(circle at 30% 30%, #ff6347, #8b0000) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #ff4500, 0 0 25px #ff0000; border-color: #ffd700; }
+  .cell.rocket .piece { background: radial-gradient(circle at 30% 30%, #69db7c, #099268) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #00ff88, 0 0 25px #00ff88; border-color: #ffd700; }
+  .cell.pyramid .piece { background: radial-gradient(circle at 30% 30%, #ffe066, #e67700) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 20px gold, 0 0 35px gold; border-color: #fff; }
   .cell.exploding { animation: explode 0.4s forwards; }
-  @keyframes explode {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 0.5; }
-    100% { transform: scale(0); opacity: 0; }
-  }
-  
-  .legend {
-    margin-top: 20px;
-    background: rgba(0,0,0,0.3);
-    padding: 15px 25px;
-    border-radius: 15px;
-    max-width: 600px;
-    font-size: 0.95em;
-    border: 2px solid rgba(255,255,255,0.2);
-  }
-  
-  .legend h3 { 
-    margin-bottom: 10px; 
-    color: #ffd700; 
-  }
-  
-  .legend p { 
-    margin: 5px 0; 
-    line-height: 1.5; 
-  }
-  
-  button {
-    margin-top: 15px;
-    padding: 10px 25px;
-    font-size: 1.1em;
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #000;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: transform 0.2s;
-  }
-  
-  button:hover { 
-    transform: scale(1.05); 
-  }
-  
-  button:active {
-    transform: scale(0.95);
-  }
-  
-  #message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.9);
-    padding: 30px 50px;
-    border-radius: 20px;
-    font-size: 1.5em;
-    border: 3px solid gold;
-    display: none;
-    z-index: 100;
-    text-align: center;
-    max-width: 90%;
-  }
-  
-  .level-info {
-    margin-top: 10px;
-    font-size: 1.1em;
-    color: #ffd700;
-  }
+  @keyframes explode { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
+  .controls { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
+  button { padding: 12px 25px; font-size: 1.1em; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s, box-shadow 0.2s; }
+  button:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+  button:active { transform: scale(0.95); }
+  button.secondary { background: linear-gradient(135deg, #74c0fc, #1864ab); color: white; }
+  button.danger { background: linear-gradient(135deg, #ff6b6b, #c92a2a); color: white; }
+  .legend { margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 15px; max-width: 600px; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.2); }
+  .legend h3 { margin-bottom: 10px; color: #ffd700; }
+  .legend p { margin: 5px 0; line-height: 1.5; }
+  #message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px 40px; border-radius: 20px; font-size: 1.4em; border: 3px solid gold; display: none; z-index: 100; text-align: center; max-width: 90%; box-shadow: 0 0 50px rgba(255,215,0,0.3); }
+  .shop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(5px); }
+  .shop-content { background: linear-gradient(135deg, #0a3d62, #1e6091); padding: 30px; border-radius: 20px; border: 3px solid #ffd700; text-align: center; color: white; max-width: 90%; width: 400px; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+  .shop-content h2 { color: #ffd700; margin-bottom: 10px; }
+  .shop-coins { font-size: 1.3em; margin-bottom: 20px; color: #ffd700; }
+  .shop-items { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+  .shop-item { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; border: 2px solid transparent; transition: 0.2s; }
+  .shop-item:hover { border-color: #ffd700; background: rgba(255,255,255,0.2); transform: translateX(5px); }
+  .shop-item.disabled { opacity: 0.5; cursor: not-allowed; }
+  .shop-icon { font-size: 2em; }
+  .shop-info { flex: 1; text-align: left; }
+  .shop-name { font-weight: bold; font-size: 1.1em; }
+  .shop-desc { font-size: 0.85em; opacity: 0.8; margin-top: 4px; }
+  .shop-price { color: #ffd700; font-weight: bold; font-size: 1.1em; }
+  .powerup-indicator { position: fixed; bottom: 20px; right: 20px; background: rgba(255,69,0,0.9); color: white; padding: 15px 25px; border-radius: 15px; border: 2px solid white; display: none; z-index: 150; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 </style>
 </head>
 <body>
   <h1>🌊 Морская Битва: Три в ряд 🌊</h1>
   <div class="stats">
-    <div>Очки: <span id="score">0</span></div>
-    <div>Ходы: <span id="moves">30</span></div>
-    <div>Цель: <span id="goal">500</span></div>
-    <div>Уровень: <span id="level">1</span></div>
-    <div>Рекорд: <span id="highscore">0</span></div>
+    <div>💰 Монеты: <span id="coins">0</span></div>
+    <div>🏆 Очки: <span id="score">0</span></div>
+    <div>🎯 Ходы: <span id="moves">25</span></div>
+    <div>📊 Уровень: <span id="level">1</span></div>
+    <div>👑 Рекорд: <span id="highscore">1</span></div>
   </div>
-  <div class="level-info">Прогресс уровня: <span id="progress">0/500</span></div>
+  <div class="target-display">Цель: <span id="targetEmoji">🐟</span> <span id="progress">0/15</span></div>
   <div id="board"></div>
-  <button onclick="initGame()">🔄 Новая игра</button>
+  <div class="controls">
+    <button onclick="openShop()">🛒 Магазин</button>
+    <button class="secondary" onclick="initGame()">🔄 Новая игра</button>
+  </div>
   <div class="legend">
     <h3>🏴‍☠️ Правила</h3>
-    <p>🎯 Меняй соседние предметы местами, чтобы собрать 3+ в ряд.</p>
-    <p>💣 <b>Бомба</b> — собирается в форме L или T (3+3 крест-накрест). Взрывает 3×3 вокруг себя!</p>
-    <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд и колонку крестом.</p>
-    <p>🔺 <b>Пирамида</b> — 5 в ряд. Уничтожает ВСЕ предметы такого же типа на поле!</p>
-    <p>⭐ Обычные совпадения 3 — дают очки. Набирай очки чтобы пройти уровень!</p>
-    <p>📈 С каждым уровнем цель увеличивается, но даётся больше ходов!</p>
+    <p>🎯 Меняй соседние предметы, чтобы собрать 3+ в ряд.</p>
+    <p>💣 <b>Бомба</b> — собирается в форме L или T. Взрывает 3×3!</p>
+    <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд и колонку.</p>
+    <p>🔺 <b>Пирамида</b> — 5 в ряд. Уничтожает ВСЕ предметы такого типа!</p>
+    <p>📈 <b>С каждым уровнем</b> цель увеличивается, а типов предметов на поле становится больше, но даётся немного больше ходов!</p>
   </div>
   <div id="message"></div>
+  <div id="shopModal" class="shop-modal" onclick="if(event.target === this) closeShop()">
+    <div class="shop-content">
+      <h2>🛒 Морской Магазин</h2>
+      <div class="shop-coins">Ваши монеты: <span id="shopCoinsDisplay">0</span> 💰</div>
+      <div class="shop-items">
+        <div class="shop-item" onclick="buyRemoveTile()">
+          <div class="shop-icon">🎯</div>
+          <div class="shop-info">
+            <div class="shop-name">Точечное удаление</div>
+            <div class="shop-desc">Удаляет один выбранный тайл. Считается как собранный!</div>
+          </div>
+          <div class="shop-price">50 💰</div>
+        </div>
+        <div class="shop-item" onclick="buyBomb()">
+          <div class="shop-icon">💣</div>
+          <div class="shop-info">
+            <div class="shop-name">Установить бомбу</div>
+            <div class="shop-desc">Добавляет бомбу на случайную клетку поля.</div>
+          </div>
+          <div class="shop-price">100 💰</div>
+        </div>
+        <div class="shop-item" onclick="buyMoves()">
+          <div class="shop-icon">⏳</div>
+          <div class="shop-info">
+            <div class="shop-name">+5 Ходов</div>
+            <div class="shop-desc">Добавляет 5 дополнительных ходов.</div>
+          </div>
+          <div class="shop-price">75 💰</div>
+        </div>
+      </div>
+      <button class="danger" onclick="closeShop()">Закрыть</button>
+    </div>
+  </div>
+  <div id="powerupIndicator" class="powerup-indicator">
+    🎯 Режим удаления активен! Кликните на тайл. 
+    <button onclick="cancelPowerUp()" style="margin-left: 10px; padding: 5px 10px; font-size: 0.8em;">Отмена</button>
+  </div>
 
 <script>
 const ITEMS = ['🐟','🐙','🦀','🐢','🐠','🐡','🐚','⭐','🐳','🦑','💎','⚓'];
@@ -245,48 +131,109 @@ const SIZE = 8;
 let board = [];
 let selected = null;
 let score = 0;
-let moves = 30;
+let coins = 0;
+let moves = 25;
 let busy = false;
 let level = 1;
-let highScore = 0;
-let levelGoal = 500;
-let levelScore = 0;
+let highScore = 1;
+let targetType = 0;
+let targetCount = 15;
+let currentTargetCleared = 0;
+let powerUpMode = null;
 
 const boardEl = document.getElementById('board');
 const scoreEl = document.getElementById('score');
+const coinsEl = document.getElementById('coins');
 const movesEl = document.getElementById('moves');
-const goalEl = document.getElementById('goal');
 const levelEl = document.getElementById('level');
 const highScoreEl = document.getElementById('highscore');
+const targetEmojiEl = document.getElementById('targetEmoji');
 const progressEl = document.getElementById('progress');
 const messageEl = document.getElementById('message');
+const shopModal = document.getElementById('shopModal');
+const shopCoinsDisplay = document.getElementById('shopCoinsDisplay');
+const powerupIndicator = document.getElementById('powerupIndicator');
 
-// Загрузка рекорда из localStorage
+function rand(n) { return Math.floor(Math.random() * n); }
+
 function loadHighScore() {
   try {
     const saved = localStorage.getItem('seaBattleHighScore');
-    if (saved) {
-      highScore = parseInt(saved) || 0;
-    }
-  } catch (e) {
-    console.log('Не удалось загрузить рекорд:', e);
-    highScore = 0;
-  }
+    if (saved) highScore = parseInt(saved) || 1;
+  } catch (e) { highScore = 1; }
 }
 
-// Сохранение рекорда в localStorage
 function saveHighScore() {
   try {
-    if (score > highScore) {
-      highScore = score;
+    if (level > highScore) {
+      highScore = level;
       localStorage.setItem('seaBattleHighScore', highScore.toString());
     }
-  } catch (e) {
-    console.log('Не удалось сохранить рекорд:', e);
+  } catch (e) {}
+}
+
+function updateStats() {
+  scoreEl.textContent = score;
+  coinsEl.textContent = coins;
+  shopCoinsDisplay.textContent = coins;
+  movesEl.textContent = moves;
+  levelEl.textContent = level;
+  highScoreEl.textContent = highScore;
+  targetEmojiEl.textContent = ITEMS[targetType];
+  progressEl.textContent = `${currentTargetCleared}/${targetCount}`;
+}
+
+function setupLevel() {
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
+  targetType = rand(numTypes);
+  targetCount = 10 + level * 5;
+  currentTargetCleared = 0;
+  moves = 25 + Math.floor(level / 2);
+  updateStats();
+}
+
+function generateBoard() {
+  let attempts = 0;
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
+  do {
+    board = [];
+    for (let r = 0; r < SIZE; r++) {
+      const row = [];
+      for (let c = 0; c < SIZE; c++) {
+        let item;
+        do {
+          item = { type: ITEMS[rand(numTypes)], special: null };
+        } while (
+          (c >= 2 && row[c-1].type === item.type && row[c-2].type === item.type) ||
+          (r >= 2 && board[r-1][c].type === item.type && board[r-2][c].type === item.type)
+        );
+        row.push(item);
+      }
+      board.push(row);
+    }
+    attempts++;
+  } while (!hasPossibleMoves() && attempts < 100);
+  
+  if (attempts >= 100) {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        board[r][c] = { type: ITEMS[rand(numTypes)], special: null };
+      }
+    }
   }
 }
 
-function rand(n) { return Math.floor(Math.random() * n); }
+function initGame() {
+  level = 1; score = 0; coins = 0;
+  powerUpMode = null;
+  powerupIndicator.style.display = 'none';
+  boardEl.classList.remove('powerup-active');
+  messageEl.style.display = 'none';
+  setupLevel();
+  generateBoard();
+  render();
+  saveHighScore();
+}
 
 function hasPossibleMoves() {
   for (let r = 0; r < SIZE; r++) {
@@ -300,24 +247,18 @@ function hasPossibleMoves() {
 
 function checkSwap(r1, c1, r2, c2) {
   if (!board[r1][c1] || !board[r2][c2]) return false;
-  
   const temp = board[r1][c1];
   board[r1][c1] = board[r2][c2];
   board[r2][c2] = temp;
-  
   const s1 = board[r1][c1].special;
   const s2 = board[r2][c2].special;
   board[r1][c1].special = null;
   board[r2][c2].special = null;
-  
   const hasMatch = findMatches().length > 0;
-  
   board[r1][c1].special = s1;
   board[r2][c2].special = s2;
-  
   board[r2][c2] = board[r1][c1];
   board[r1][c1] = temp;
-  
   return hasMatch;
 }
 
@@ -325,22 +266,18 @@ async function shuffleBoard() {
   showMessage('🔄 Нет доступных ходов! Перемешиваем поле... 🔄');
   await sleep(1500);
   messageEl.style.display = 'none';
-  
   let items = [];
   for (let r = 0; r < SIZE; r++) {
     for (let c = 0; c < SIZE; c++) {
       items.push(board[r][c]);
     }
   }
-  
   let attempts = 0;
-  let maxAttempts = 100;
   do {
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [items[i], items[j]] = [items[j], items[i]];
     }
-    
     let idx = 0;
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
@@ -348,69 +285,11 @@ async function shuffleBoard() {
       }
     }
     attempts++;
-  } while ((findMatches().length > 0 || !hasPossibleMoves()) && attempts < maxAttempts);
-  
-  if (attempts >= maxAttempts) {
-    initGame();
-    return;
-  }
-  
+  } while ((findMatches().length > 0 || !hasPossibleMoves()) && attempts < 100);
   render();
   showMessage('🔄 Поле перемешано! 🔄');
   await sleep(1000);
   messageEl.style.display = 'none';
-}
-
-function calculateLevelSettings() {
-  // Цель увеличивается с каждым уровнем
-  levelGoal = 500 + (level - 1) * 200;
-  // Ходы тоже немного увеличиваются, но не так быстро как цель
-  moves = 30 + Math.floor((level - 1) * 2);
-}
-
-function initGame() {
-  // Сохраняем рекорд перед началом новой игры
-  saveHighScore();
-  
-  // Если это не первый уровень, увеличиваем уровень
-  if (level > 1) {
-    level++;
-  }
-  
-  calculateLevelSettings();
-  score = 0;
-  levelScore = 0;
-  updateStats();
-  messageEl.style.display = 'none';
-  
-  do {
-    board = [];
-    for (let r = 0; r < SIZE; r++) {
-      const row = [];
-      for (let c = 0; c < SIZE; c++) {
-        let item;
-        do {
-          item = { type: ITEMS[rand(ITEMS.length)], special: null };
-        } while (
-          (c >= 2 && row[c-1].type === item.type && row[c-2].type === item.type) ||
-          (r >= 2 && board[r-1][c].type === item.type && board[r-2][c].type === item.type)
-        );
-        row.push(item);
-      }
-      board.push(row);
-    }
-  } while (findMatches().length > 0 || !hasPossibleMoves());
-  
-  render();
-}
-
-function updateStats() {
-  scoreEl.textContent = score;
-  movesEl.textContent = moves;
-  goalEl.textContent = levelGoal;
-  levelEl.textContent = level;
-  highScoreEl.textContent = highScore;
-  progressEl.textContent = `${levelScore}/${levelGoal}`;
 }
 
 function render() {
@@ -426,7 +305,6 @@ function render() {
         piece.classList.add('piece-' + ITEMS.indexOf(item.type));
         piece.textContent = item.type;
         cell.appendChild(piece);
-        
         if (item.special === 'bomb') cell.classList.add('bomb','special');
         else if (item.special === 'rocket') cell.classList.add('rocket','special');
         else if (item.special === 'pyramid') cell.classList.add('pyramid','special');
@@ -438,16 +316,38 @@ function render() {
     }
   }
 }
-
-function onCellClick(r, c) {
+ function onCellClick(r, c) {
   if (busy) return;
+  if (powerUpMode === 'remove') {
+    if (!board[r][c]) return;
+    busy = true;
+    powerUpMode = null;
+    powerupIndicator.style.display = 'none';
+    boardEl.classList.remove('powerup-active');
+    if (board[r][c].type === ITEMS[targetType]) {
+      currentTargetCleared++;
+      coins += 5;
+    } else {
+      coins += 1;
+    }
+    score += 10;
+    board[r][c] = null;
+    render();
+    updateStats();
+    setTimeout(async () => {
+      await dropAndFill();
+      await processMatches();
+      checkLevelState();
+      busy = false;
+    }, 200);
+    return;
+  }
+
   if (!selected) {
     selected = { r, c };
     render();
     const idx = r * SIZE + c;
-    if (boardEl.children[idx]) {
-      boardEl.children[idx].classList.add('selected');
-    }
+    if (boardEl.children[idx]) boardEl.children[idx].classList.add('selected');
   } else {
     const dr = Math.abs(selected.r - r);
     const dc = Math.abs(selected.c - c);
@@ -457,9 +357,7 @@ function onCellClick(r, c) {
       selected = { r, c };
       render();
       const idx = r * SIZE + c;
-      if (boardEl.children[idx]) {
-        boardEl.children[idx].classList.add('selected');
-      }
+      if (boardEl.children[idx]) boardEl.children[idx].classList.add('selected');
     }
   }
 }
@@ -470,47 +368,24 @@ async function trySwap(r1, c1, r2, c2) {
   [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
   render();
   await sleep(150);
-  
   const matches = findMatches();
   const isSpecialHit = (board[r1][c1]?.special || board[r2][c2]?.special) && 
                        matches.some(m => m.cells.some(([r,c]) => (r===r1&&c===c1)||(r===r2&&c===c2)));
-  
   if (matches.length === 0 && !isSpecialHit) {
     [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
     render();
     busy = false;
     return;
   }
-  
   moves--;
   updateStats();
-  
   if (isSpecialHit) {
     const sR = board[r1][c1]?.special ? r1 : r2;
     const sC = board[r1][c1]?.special ? c1 : c2;
     await activateSpecial(sR, sC);
   }
-  
   await processMatches();
-  
-  // Проверяем завершение уровня
-  if (levelScore >= levelGoal) {
-    showMessage(`🎉 Уровень ${level} пройден! Переходим на уровень ${level + 1}! 🎉`);
-    await sleep(2000);
-    messageEl.style.display = 'none';
-    initGame(); // Начинаем следующий уровень
-  } else if (moves <= 0) {
-    saveHighScore(); // Сохраняем рекорд при проигрыше
-    showMessage(`💀 Ходы кончились! Вы достигли уровня ${level}. Рекорд: ${highScore} 💀`);
-    await sleep(3000);
-    messageEl.style.display = 'none';
-    // Сбрасываем уровень на 1 при проигрыше
-    level = 0;
-    initGame();
-  } else if (!hasPossibleMoves()) {
-    await shuffleBoard();
-  }
-  
+  checkLevelState();
   busy = false;
 }
 
@@ -520,37 +395,41 @@ async function activateSpecial(r, c) {
   const type = item.special;
   const itemType = item.type;
   const toClear = new Set();
-  
   if (type === 'bomb') {
     for (let dr = -1; dr <= 1; dr++)
       for (let dc = -1; dc <= 1; dc++) {
         const nr = r+dr, nc = c+dc;
-        if (nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE) toClear.add(nr*SIZE+nc);
+        if (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE) toClear.add(nr*SIZE+nc);
       }
-    score += 50;
-    levelScore += 50;
   } else if (type === 'rocket') {
     for (let i = 0; i < SIZE; i++) {
       toClear.add(r*SIZE+i);
       toClear.add(i*SIZE+c);
     }
-    score += 80;
-    levelScore += 80;
   } else if (type === 'pyramid') {
     for (let rr = 0; rr < SIZE; rr++)
       for (let cc = 0; cc < SIZE; cc++)
         if (board[rr][cc] && board[rr][cc].type === itemType)
           toClear.add(rr*SIZE+cc);
-    score += 150;
-    levelScore += 150;
   }
-  
+  let clearedTargets = 0, clearedNormal = 0;
+  toClear.forEach(idx => {
+    const rr = Math.floor(idx/SIZE), cc = idx%SIZE;
+    if (board[rr][cc]) {
+      if (board[rr][cc].type === ITEMS[targetType]) clearedTargets++;
+      else clearedNormal++;
+    }
+  });
+  currentTargetCleared += clearedTargets;
+  coins += clearedTargets * 5 + clearedNormal * 1;
+  score += (clearedTargets * 10 + clearedNormal * 5) * 2;
   await animateClear(toClear);
   toClear.forEach(idx => {
     const rr = Math.floor(idx/SIZE), cc = idx%SIZE;
     board[rr][cc] = null;
   });
   render();
+  updateStats();
   await sleep(200);
   await dropAndFill();
 }
@@ -599,10 +478,8 @@ function detectSpecials(matches) {
       cellMatchCount[key].push(idx);
     });
   });
-  
   const specials = [];
   const usedMatches = new Set();
-  
   for (const key in cellMatchCount) {
     if (cellMatchCount[key].length >= 2) {
       const [r, c] = key.split(',').map(Number);
@@ -610,7 +487,6 @@ function detectSpecials(matches) {
       cellMatchCount[key].forEach(i => usedMatches.add(i));
     }
   }
-  
   matches.forEach((m, idx) => {
     if (usedMatches.has(idx)) return;
     if (m.len >= 5) {
@@ -621,7 +497,6 @@ function detectSpecials(matches) {
       specials.push({ r: mid[0], c: mid[1], type: 'rocket', itemType: board[mid[0]][mid[1]].type });
     }
   });
-  
   return specials;
 }
 
@@ -630,18 +505,21 @@ async function processMatches() {
   while (true) {
     const matches = findMatches();
     if (matches.length === 0) break;
-    
     const specials = detectSpecials(matches);
     const toClear = new Set();
     matches.forEach(m => m.cells.forEach(([r,c]) => toClear.add(r*SIZE+c)));
-    
     const specialPositions = new Set(specials.map(s => s.r*SIZE+s.c));
-    
-    const points = toClear.size * 10 * (chain + 1);
-    score += points;
-    levelScore += points;
-    updateStats();
-    
+    let clearedTargets = 0, clearedNormal = 0;
+    toClear.forEach(idx => {
+      const r = Math.floor(idx/SIZE), c = idx%SIZE;
+      if (board[r][c]) {
+        if (board[r][c].type === ITEMS[targetType]) clearedTargets++;
+        else clearedNormal++;
+      }
+    });
+    currentTargetCleared += clearedTargets;
+    coins += clearedTargets * 5 + clearedNormal * 1;
+    score += (clearedTargets * 10 + clearedNormal * 5) * (chain + 1);
     await animateClear(toClear);
     toClear.forEach(idx => {
       if (!specialPositions.has(idx)) {
@@ -649,12 +527,11 @@ async function processMatches() {
         board[r][c] = null;
       }
     });
-    
     specials.forEach(s => {
       board[s.r][s.c] = { type: s.itemType, special: s.type };
     });
-    
     render();
+    updateStats();
     await sleep(250);
     await dropAndFill();
     chain++;
@@ -663,13 +540,12 @@ async function processMatches() {
 
 async function animateClear(set) {
   const cells = boardEl.children;
-  set.forEach(idx => {
-    if (cells[idx]) cells[idx].classList.add('exploding');
-  });
+  set.forEach(idx => { if (cells[idx]) cells[idx].classList.add('exploding'); });
   await sleep(350);
 }
 
 async function dropAndFill() {
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
   for (let c = 0; c < SIZE; c++) {
     let writeRow = SIZE - 1;
     for (let r = SIZE - 1; r >= 0; r--) {
@@ -682,21 +558,104 @@ async function dropAndFill() {
       }
     }
     for (let r = writeRow; r >= 0; r--) {
-      board[r][c] = { type: ITEMS[rand(ITEMS.length)], special: null };
+      board[r][c] = { type: ITEMS[rand(numTypes)], special: null };
     }
   }
   render();
   await sleep(300);
 }
 
+function checkLevelState() {
+  if (currentTargetCleared >= targetCount) {
+    showMessage(`🎉 Уровень ${level} пройден! 🎉<br><small>Бонус: +50 монет!</small>`);
+    coins += 50;
+    setTimeout(async () => {
+      messageEl.style.display = 'none';
+      level++;
+      saveHighScore();
+      setupLevel();
+      generateBoard();
+      render();
+    }, 2000);
+  } else if (moves <= 0) {
+    showMessage(`💀 Ходы кончились!<br>Вы достигли уровня ${level}<br><small>Нажмите "Новая игра" чтобы начать заново</small>`);
+    setTimeout(() => { messageEl.style.display = 'none'; }, 4000);
+  } else if (!hasPossibleMoves()) {
+    shuffleBoard();
+  }
+}
+
+function openShop() {
+  if (busy) return;
+  updateStats();
+  shopModal.style.display = 'flex';
+}
+
+function closeShop() {
+  shopModal.style.display = 'none';
+}
+
+function buyRemoveTile() {
+  if (coins >= 50) {
+    coins -= 50;
+    powerUpMode = 'remove';
+    powerupIndicator.style.display = 'block';
+    boardEl.classList.add('powerup-active');
+    closeShop();
+    updateStats();
+    showMessage('🎯 Кликните на любой тайл, чтобы удалить его!');
+    setTimeout(() => messageEl.style.display = 'none', 1500);
+  }
+}
+
+function buyBomb() {
+  if (coins >= 100) {
+    let emptySpots = [];
+    for(let r=0; r<SIZE; r++) {
+      for(let c=0; c<SIZE; c++) {
+        if(board[r][c] && !board[r][c].special) emptySpots.push({r, c});
+      }
+    }
+    if(emptySpots.length > 0) {
+      coins -= 100;
+      const spot = emptySpots[rand(emptySpots.length)];
+      board[spot.r][spot.c].special = 'bomb';
+      closeShop();
+      updateStats();
+      render();
+      showMessage('💣 Бомба установлена на поле!');
+      setTimeout(() => messageEl.style.display = 'none', 1500);
+    } else {
+      showMessage('Нет места для бомбы!');
+      setTimeout(() => messageEl.style.display = 'none', 1500);
+    }
+  }
+}
+
+function buyMoves() {
+  if (coins >= 75) {
+    coins -= 75;
+    moves += 5;
+    closeShop();
+    updateStats();
+    showMessage('⏳ +5 ходов добавлено!');
+    setTimeout(() => messageEl.style.display = 'none', 1500);
+  }
+}
+
+function cancelPowerUp() {
+  powerUpMode = null;
+  powerupIndicator.style.display = 'none';
+  boardEl.classList.remove('powerup-active');
+}
+
 function showMessage(text) {
-  messageEl.textContent = text;
+  messageEl.innerHTML = text;
   messageEl.style.display = 'block';
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Инициализация при загрузке страницы
 window.onload = function() {
   loadHighScore();
   initGame();
