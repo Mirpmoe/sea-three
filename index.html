@@ -30,11 +30,35 @@
   .piece-9  { background: radial-gradient(circle at 30% 30%, #e599f7, #9c36b5); }
   .piece-10 { background: radial-gradient(circle at 30% 30%, #99e9f2, #1098ad); }
   .piece-11 { background: radial-gradient(circle at 30% 30%, #adb5bd, #495057); }
-  .cell.special .piece { animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
-  .cell.bomb .piece { background: radial-gradient(circle at 30% 30%, #ff6347, #8b0000) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #ff4500, 0 0 25px #ff0000; border-color: #ffd700; }
-  .cell.rocket .piece { background: radial-gradient(circle at 30% 30%, #69db7c, #099268) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #00ff88, 0 0 25px #00ff88; border-color: #ffd700; }
-  .cell.pyramid .piece { background: radial-gradient(circle at 30% 30%, #ffe066, #e67700) !important; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 20px gold, 0 0 35px gold; border-color: #fff; }
+
+  /* Специальные стили для бомб */
+  .cell.bomb .piece {
+    position: relative;
+    background: radial-gradient(circle at 30% 30%, #ff6347, #8b0000) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #ff4500, 0 0 25px #ff0000;
+    border-color: #ffd700;
+  }
+  .cell.bomb .piece::after {
+    content: "💣";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.6em;
+    color: white;
+    text-shadow: 0 0 5px black;
+  }
+
+  .cell.rocket .piece {
+    background: radial-gradient(circle at 30% 30%, #69db7c, #099268) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 15px #00ff88, 0 0 25px #00ff88;
+    border-color: #ffd700;
+  }
+  .cell.pyramid .piece {
+    background: radial-gradient(circle at 30% 30%, #ffe066, #e67700) !important;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 20px gold, 0 0 35px gold;
+    border-color: #fff;
+  }
   .cell.exploding { animation: explode 0.4s forwards; }
   @keyframes explode { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
   .controls { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
@@ -72,7 +96,7 @@
     <div>📊 Уровень: <span id="level">1</span></div>
     <div>👑 Рекорд: <span id="highscore">1</span></div>
   </div>
-  <div class="target-display">Цель: <span id="targetEmoji">🐟</span> <span id="progress">0/15</span></div>
+  <div class="target-display">Цель: <span id="targetEmoji">🐟</span> <span id="progress">0/8</span></div>
   <div id="board"></div>
   <div class="controls">
     <button onclick="openShop()">🛒 Магазин</button>
@@ -81,10 +105,10 @@
   <div class="legend">
     <h3>🏴‍☠️ Правила</h3>
     <p>🎯 Меняй соседние предметы, чтобы собрать 3+ в ряд.</p>
-    <p>💣 <b>Бомба</b> — собирается в форме L или T. Взрывает 3×3!</p>
+    <p>💣 <b>Бомба</b> — собирается в форме L или T. Взрывается, если её <u>собрать в комбинацию</u> с такими же тайлами!</p>
     <p>🚀 <b>Ракета</b> — 4 в ряд. Уничтожает весь ряд и колонку.</p>
     <p>🔺 <b>Пирамида</b> — 5 в ряд. Уничтожает ВСЕ предметы такого типа!</p>
-    <p>📈 <b>С каждым уровнем</b> цель увеличивается, а типов предметов на поле становится больше, но даётся немного больше ходов!</p>
+    <p>📈 Цель каждого уровня — собрать нужное количество указанного тайла. С каждым уровнем цель растёт, но даётся больше ходов!</p>
   </div>
   <div id="message"></div>
   <div id="shopModal" class="shop-modal" onclick="if(event.target === this) closeShop()">
@@ -104,7 +128,7 @@
           <div class="shop-icon">💣</div>
           <div class="shop-info">
             <div class="shop-name">Установить бомбу</div>
-            <div class="shop-desc">Добавляет бомбу на случайную клетку поля.</div>
+            <div class="shop-desc">Превращает случайный тайл в бомбу!</div>
           </div>
           <div class="shop-price">100 💰</div>
         </div>
@@ -137,7 +161,7 @@ let busy = false;
 let level = 1;
 let highScore = 1;
 let targetType = 0;
-let targetCount = 15;
+let targetCount = 8; // Снижена начальная цель
 let currentTargetCleared = 0;
 let powerUpMode = null;
 
@@ -183,18 +207,29 @@ function updateStats() {
   progressEl.textContent = `${currentTargetCleared}/${targetCount}`;
 }
 
+// Настройка параметров уровня с улучшенным балансом
 function setupLevel() {
-  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
+  // Сложность: увеличиваем количество типов предметов на поле медленнее
+  // Уровень 1-3: 4 типа, 4-6: 5 типов, 7-9: 6 типов и т.д.
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 3));
+  
+  // Выбираем случайную цель из доступных типов
   targetType = rand(numTypes);
-  targetCount = 10 + level * 5;
+  
+  // Цель растет гораздо медленнее и начинается с меньшего значения
+  targetCount = 8 + Math.floor(level * 1.5);
   currentTargetCleared = 0;
+  
+  // Ходы: базовые 25 + немного за уровень
   moves = 25 + Math.floor(level / 2);
+  
   updateStats();
 }
 
 function generateBoard() {
   let attempts = 0;
-  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 3));
+  
   do {
     board = [];
     for (let r = 0; r < SIZE; r++) {
@@ -305,6 +340,8 @@ function render() {
         piece.classList.add('piece-' + ITEMS.indexOf(item.type));
         piece.textContent = item.type;
         cell.appendChild(piece);
+        
+        // Применяем классы для специальных элементов
         if (item.special === 'bomb') cell.classList.add('bomb','special');
         else if (item.special === 'rocket') cell.classList.add('rocket','special');
         else if (item.special === 'pyramid') cell.classList.add('pyramid','special');
@@ -369,8 +406,11 @@ async function trySwap(r1, c1, r2, c2) {
   render();
   await sleep(150);
   const matches = findMatches();
-  const isSpecialHit = (board[r1][c1]?.special || board[r2][c2]?.special) && 
-                       matches.some(m => m.cells.some(([r,c]) => (r===r1&&c===c1)||(r===r2&&c===c2)));
+  // Проверка на активацию специальных элементов через совпадение
+  const isSpecialHit = matches.some(m => 
+    m.cells.some(([r,c]) => board[r][c]?.special)
+  );
+  
   if (matches.length === 0 && !isSpecialHit) {
     [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
     render();
@@ -379,23 +419,37 @@ async function trySwap(r1, c1, r2, c2) {
   }
   moves--;
   updateStats();
-  if (isSpecialHit) {
-    const sR = board[r1][c1]?.special ? r1 : r2;
-    const sC = board[r1][c1]?.special ? c1 : c2;
-    await activateSpecial(sR, sC);
+  
+  // Активируем все специальные элементы, которые попали в совпадение
+  const specialsToActivate = new Set();
+  matches.forEach(m => {
+    m.cells.forEach(([r, c]) => {
+      if (board[r][c]?.special) {
+        specialsToActivate.add(`${r},${c}`);
+      }
+    });
+  });
+  
+  for (const key of specialsToActivate) {
+    const [r, c] = key.split(',').map(Number);
+    await activateSpecial(r, c);
   }
+  
   await processMatches();
   checkLevelState();
   busy = false;
 }
 
+// Обновленная функция активации специальных элементов
 async function activateSpecial(r, c) {
   const item = board[r][c];
   if (!item || !item.special) return;
   const type = item.special;
   const itemType = item.type;
   const toClear = new Set();
+  
   if (type === 'bomb') {
+    // Взрываем 3x3 вокруг бомбы
     for (let dr = -1; dr <= 1; dr++)
       for (let dc = -1; dc <= 1; dc++) {
         const nr = r+dr, nc = c+dc;
@@ -412,6 +466,8 @@ async function activateSpecial(r, c) {
         if (board[rr][cc] && board[rr][cc].type === itemType)
           toClear.add(rr*SIZE+cc);
   }
+  
+  // Подсчет целей и монет
   let clearedTargets = 0, clearedNormal = 0;
   toClear.forEach(idx => {
     const rr = Math.floor(idx/SIZE), cc = idx%SIZE;
@@ -420,9 +476,11 @@ async function activateSpecial(r, c) {
       else clearedNormal++;
     }
   });
+  
   currentTargetCleared += clearedTargets;
   coins += clearedTargets * 5 + clearedNormal * 1;
   score += (clearedTargets * 10 + clearedNormal * 5) * 2;
+  
   await animateClear(toClear);
   toClear.forEach(idx => {
     const rr = Math.floor(idx/SIZE), cc = idx%SIZE;
@@ -440,9 +498,9 @@ function findMatches() {
     let c = 0;
     while (c < SIZE) {
       const type = board[r][c]?.type;
-      if (!type || board[r][c].special) { c++; continue; }
+      if (!type) { c++; continue; }
       let len = 1;
-      while (c+len < SIZE && board[r][c+len]?.type === type && !board[r][c+len].special) len++;
+      while (c+len < SIZE && board[r][c+len]?.type === type) len++;
       if (len >= 3) {
         const cells = [];
         for (let i = 0; i < len; i++) cells.push([r, c+i]);
@@ -455,9 +513,9 @@ function findMatches() {
     let r = 0;
     while (r < SIZE) {
       const type = board[r][c]?.type;
-      if (!type || board[r][c].special) { r++; continue; }
+      if (!type) { r++; continue; }
       let len = 1;
-      while (r+len < SIZE && board[r+len][c]?.type === type && !board[r+len][c].special) len++;
+      while (r+len < SIZE && board[r+len][c]?.type === type) len++;
       if (len >= 3) {
         const cells = [];
         for (let i = 0; i < len; i++) cells.push([r+i, c]);
@@ -478,8 +536,11 @@ function detectSpecials(matches) {
       cellMatchCount[key].push(idx);
     });
   });
+  
   const specials = [];
   const usedMatches = new Set();
+  
+  // Поиск бомб (пересечение двух линий)
   for (const key in cellMatchCount) {
     if (cellMatchCount[key].length >= 2) {
       const [r, c] = key.split(',').map(Number);
@@ -487,6 +548,8 @@ function detectSpecials(matches) {
       cellMatchCount[key].forEach(i => usedMatches.add(i));
     }
   }
+  
+  // Поиск ракет и пирамид
   matches.forEach((m, idx) => {
     if (usedMatches.has(idx)) return;
     if (m.len >= 5) {
@@ -497,6 +560,7 @@ function detectSpecials(matches) {
       specials.push({ r: mid[0], c: mid[1], type: 'rocket', itemType: board[mid[0]][mid[1]].type });
     }
   });
+  
   return specials;
 }
 
@@ -505,10 +569,14 @@ async function processMatches() {
   while (true) {
     const matches = findMatches();
     if (matches.length === 0) break;
+    
     const specials = detectSpecials(matches);
     const toClear = new Set();
     matches.forEach(m => m.cells.forEach(([r,c]) => toClear.add(r*SIZE+c)));
+    
     const specialPositions = new Set(specials.map(s => s.r*SIZE+s.c));
+    
+    // Подсчет целей и монет
     let clearedTargets = 0, clearedNormal = 0;
     toClear.forEach(idx => {
       const r = Math.floor(idx/SIZE), c = idx%SIZE;
@@ -517,19 +585,25 @@ async function processMatches() {
         else clearedNormal++;
       }
     });
+    
     currentTargetCleared += clearedTargets;
     coins += clearedTargets * 5 + clearedNormal * 1;
     score += (clearedTargets * 10 + clearedNormal * 5) * (chain + 1);
+    
     await animateClear(toClear);
+    
     toClear.forEach(idx => {
       if (!specialPositions.has(idx)) {
         const r = Math.floor(idx/SIZE), c = idx%SIZE;
         board[r][c] = null;
       }
     });
+    
+    // Создаем новые специальные элементы
     specials.forEach(s => {
       board[s.r][s.c] = { type: s.itemType, special: s.type };
     });
+    
     render();
     updateStats();
     await sleep(250);
@@ -545,7 +619,7 @@ async function animateClear(set) {
 }
 
 async function dropAndFill() {
-  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 2));
+  const numTypes = Math.min(ITEMS.length, 4 + Math.floor((level - 1) / 3));
   for (let c = 0; c < SIZE; c++) {
     let writeRow = SIZE - 1;
     for (let r = SIZE - 1; r >= 0; r--) {
@@ -585,6 +659,7 @@ function checkLevelState() {
   }
 }
 
+// Магазин
 function openShop() {
   if (busy) return;
   updateStats();
@@ -610,23 +685,26 @@ function buyRemoveTile() {
 
 function buyBomb() {
   if (coins >= 100) {
-    let emptySpots = [];
+    let normalTiles = [];
     for(let r=0; r<SIZE; r++) {
       for(let c=0; c<SIZE; c++) {
-        if(board[r][c] && !board[r][c].special) emptySpots.push({r, c});
+        if(board[r][c] && !board[r][c].special) {
+          normalTiles.push({r, c});
+        }
       }
     }
-    if(emptySpots.length > 0) {
+    
+    if(normalTiles.length > 0) {
       coins -= 100;
-      const spot = emptySpots[rand(emptySpots.length)];
-      board[spot.r][spot.c].special = 'bomb';
+      const tile = normalTiles[rand(normalTiles.length)];
+      board[tile.r][tile.c].special = 'bomb';
       closeShop();
       updateStats();
       render();
-      showMessage('💣 Бомба установлена на поле!');
-      setTimeout(() => messageEl.style.display = 'none', 1500);
+      showMessage('💣 Бомба установлена! Соберите её в комбинацию, чтобы взорвать!');
+      setTimeout(() => messageEl.style.display = 'none', 2000);
     } else {
-      showMessage('Нет места для бомбы!');
+      showMessage('Нет подходящих тайлов для бомбы!');
       setTimeout(() => messageEl.style.display = 'none', 1500);
     }
   }
